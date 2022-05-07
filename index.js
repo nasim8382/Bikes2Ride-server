@@ -24,6 +24,11 @@ const run = async() => {
             res.send(products);
         })
 
+        app.get('/productCount', async(req, res) => {
+            const count = await productCollection.estimatedDocumentCount();
+            res.send({count});
+        })
+
         app.get('/product/:id', async(req, res) => {
             const id = req.params.id;
             const query = {_id: ObjectId(id)};
@@ -31,10 +36,33 @@ const run = async() => {
             res.send(product);
         });
 
+        // update quantity
+        app.put('/product/:id', async(req, res) => {
+            const id = req.params.id;
+            const updatedQuantity = req.body;
+            const filter = {_id: ObjectId(id)};
+            const options = { upsert: true };
+            const updatedDoc = {
+                $set: {
+                    quantity: updatedQuantity.quantity,
+                }
+            }
+            const result = await productCollection.updateOne(filter, updatedDoc, options);
+            res.send(result);
+        })
+
         // post
         app.post('/product', async(req, res) => {
             const newProduct = req.body;
             const result = await productCollection.insertOne(newProduct);
+            res.send(result);
+        })
+
+        // delete
+        app.delete('/product/:id', async(req, res) => {
+            const id = req.params.id;
+            const query = {_id: ObjectId(id)};
+            const result = await productCollection.deleteOne(query);
             res.send(result);
         })
     }
